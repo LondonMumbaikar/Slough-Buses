@@ -182,14 +182,6 @@
             color: #6c8ea0;
             border-top: 1px solid #e2edf2;
         }
-        .error-message {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 0.6rem 1rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
         .empty-message {
             text-align: center;
             padding: 2rem;
@@ -202,7 +194,7 @@
     <div class="main-card">
         <div class="header">
             <h1>🧾 Multi‑leg fare builder</h1>
-            <p>Add route segments · pick origin & destination · automatic total</p>
+            <p>Select bus company, then route, then origin & destination · automatic total</p>
         </div>
         <div id="segmentsContainer" class="segments-area"></div>
         <div class="total-section">
@@ -211,17 +203,17 @@
         </div>
         <button class="add-btn" id="addSegmentBtn">➕ Add another route segment</button>
         <div class="attribution">
-            Data loaded from external files: route_metadata.json, stop lists (.txt), zone mappings and prices (.json).
+            Data loaded from external files: route_metadata.json (companies auto-discovered), stop lists (.txt), zone mappings and prices (.json).
+            Companies and routes are displayed in alphabetical/numerical order.
         </div>
     </div>
 </div>
 
 <script>
-    // --------------------------------------------------------------
     // Global data structures
-    // --------------------------------------------------------------
-    let ROUTE_METADATA = {};      // loaded from route_metadata.json
-    const ROUTES_DATA = {};       // fully constructed route objects
+    let ROUTE_METADATA = {};         // loaded from route_metadata.json
+    const ROUTES_DATA = {};          // fully constructed route objects
+    let COMPANIES = {};              // auto-discovered from ROUTE_METADATA
 
     // Segment management
     let segmentCounter = 0;
@@ -230,9 +222,7 @@
     const segmentsContainer = document.getElementById('segmentsContainer');
     const grandTotalSpan = document.getElementById('grandTotal');
 
-    // --------------------------------------------------------------
     // Helper: load text file (stops)
-    // --------------------------------------------------------------
     async function loadStopsFromFile(filename) {
         const response = await fetch(filename);
         if (!response.ok) throw new Error(`HTTP ${response.status} loading ${filename}`);
@@ -240,27 +230,87 @@
         return text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
     }
 
-    // --------------------------------------------------------------
     // Helper: load JSON file
-    // --------------------------------------------------------------
     async function loadJSON(filename) {
         const response = await fetch(filename);
         if (!response.ok) throw new Error(`HTTP ${response.status} loading ${filename}`);
         return response.json();
     }
 
-    // --------------------------------------------------------------
     // Load route metadata from external JSON
-    // --------------------------------------------------------------
     async function loadRouteMetadata() {
-        const response = await fetch("route_metadata.json");
-        if (!response.ok) throw new Error("Failed to load route_metadata.json");
-        ROUTE_METADATA = await response.json();
+        ROUTE_METADATA = await loadJSON("route_metadata.json");
     }
 
-    // --------------------------------------------------------------
+    // Sort routes naturally (e.g., Route 2 before Route 5, then alphabetically)
+    function sortRoutes(routes) {
+        return routes.sort((a, b) => {
+            // Extract route number from displayName (e.g., "🚍 Route 2: ..." -> 2)
+            const aMatch = a.name.match(/Route\s+(\d+)/i);
+            const bMatch = b.name.match(/Route\s+(\d+)/i);
+            
+            if (aMatch && bMatch) {
+                // Both have route numbers - sort numerically
+                const aNum = parseInt(aMatch[1]);
+                const bNum = parseInt(bMatch[1]);
+                if (aNum !== bNum) return aNum - bNum;
+            } else if (aMatch) {
+                return -1; // a has number, b doesn't - a comes first
+            } else if (bMatch) {
+                return 1;  // b has number, a doesn't - b comes first
+            }
+            
+            // Fallback to alphabetical by display name
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    // Auto-discover companies from route_metadata.json with sorting
+    function discoverCompanies() {
+        const companiesMap = {};
+        for (const [routeId, meta] of Object.entries(ROUTE_METADATA)) {
+            const companyId = meta.company;
+            if (!companyId) continue;
+            if (!companiesMap[companyId]) {
+                companiesMap[companyId] = {
+                    id: companyId,
+                    name: companyId,  // Will be replaced with friendly name
+                    routes: []
+                };
+            }
+            companiesMap[companyId].routes.push(routeId);
+        }
+        
+        // Add friendly company names
+        const friendlyNames = {
+            "CTNY": "Thames Valley Buses",
+            "OTHER": "Other Operator"
+            // Add more as needed
+        };
+        
+        // Convert to array and add friendly names
+        const companiesArray = [];
+        for (const [companyId, data] of Object.entries(companiesMap)) {
+            data.name = friendlyNames[companyId] || companyId;
+            companiesArray.push(data);
+        }
+        
+        // Sort companies alphabetically by friendly name
+        companiesArray.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Convert back to object for easy lookup (preserve order with Map-like behavior)
+        COMPANIES = {};
+        for (const company of companiesArray) {
+            COMPANIES[company.id] = {
+                name: company.name,
+                routes: company.routes
+            };
+        }
+        
+        console.log("Auto-discovered companies (sorted):", COMPANIES);
+    }
+
     // For each route, load stops, zones, prices and build ROUTES_DATA
-    // --------------------------------------------------------------
     async function loadAllRouteData() {
         const promises = [];
         for (const [routeId, meta] of Object.entries(ROUTE_METADATA)) {
@@ -273,6 +323,7 @@
                     ]);
                     ROUTES_DATA[routeId] = {
                         id: routeId,
+                        company: meta.company,
                         displayName: meta.displayName,
                         lineDescription: meta.lineDescription,
                         stops: stops,
@@ -286,6 +337,7 @@
                     // Create an empty placeholder so UI doesn't break
                     ROUTES_DATA[routeId] = {
                         id: routeId,
+                        company: meta.company,
                         displayName: meta.displayName,
                         lineDescription: meta.lineDescription,
                         stops: [],
@@ -300,9 +352,18 @@
         await Promise.all(promises);
     }
 
-    // --------------------------------------------------------------
+    // Get routes for a specific company (sorted)
+    function getRoutesForCompany(companyId) {
+        const routeList = [];
+        for (const [routeId, route] of Object.entries(ROUTES_DATA)) {
+            if (route.company === companyId) {
+                routeList.push({ id: routeId, name: route.displayName });
+            }
+        }
+        return sortRoutes(routeList);
+    }
+
     // Segment fare calculation
-    // --------------------------------------------------------------
     function computeSegmentFare(segment) {
         if (!segment.routeKey || !segment.originId || !segment.destId) return null;
         const route = ROUTES_DATA[segment.routeKey];
@@ -344,6 +405,58 @@
         updateGrandTotal();
     }
 
+    function populateCompanyDropdown(segmentId) {
+        const segment = segments.find(s => s.id === segmentId);
+        if (!segment) return;
+        const companySelect = document.getElementById(`company-${segmentId}`);
+        if (!companySelect) return;
+
+        companySelect.innerHTML = '<option value="" disabled selected>— Select bus company —</option>';
+        
+        // Companies are already sorted in COMPANIES object (preserved order from array)
+        for (const [companyId, companyData] of Object.entries(COMPANIES)) {
+            const option = document.createElement('option');
+            option.value = companyId;
+            option.textContent = companyData.name;
+            companySelect.appendChild(option);
+        }
+
+        if (segment.companyId && COMPANIES[segment.companyId]) {
+            companySelect.value = segment.companyId;
+        } else {
+            segment.companyId = null;
+            segment.routeKey = null;
+        }
+    }
+
+    function populateRouteDropdown(segmentId) {
+        const segment = segments.find(s => s.id === segmentId);
+        if (!segment) return;
+        const routeSelect = document.getElementById(`route-${segmentId}`);
+        if (!routeSelect) return;
+
+        routeSelect.innerHTML = '<option value="" disabled selected>— Select route —</option>';
+        
+        if (segment.companyId && COMPANIES[segment.companyId]) {
+            const routes = getRoutesForCompany(segment.companyId);
+            routes.forEach(route => {
+                const option = document.createElement('option');
+                option.value = route.id;
+                option.textContent = route.name;
+                routeSelect.appendChild(option);
+            });
+            routeSelect.disabled = false;
+        } else {
+            routeSelect.disabled = true;
+        }
+
+        if (segment.routeKey && ROUTES_DATA[segment.routeKey]) {
+            routeSelect.value = segment.routeKey;
+        } else {
+            segment.routeKey = null;
+        }
+    }
+
     function populateStopDropdowns(segmentId, routeKey) {
         const segment = segments.find(s => s.id === segmentId);
         if (!segment) return;
@@ -355,11 +468,11 @@
         originSelect.innerHTML = '';
         destSelect.innerHTML = '';
 
-        if (!route.stops || route.stops.length === 0) {
+        if (!route || !route.stops || route.stops.length === 0) {
             const errOpt = document.createElement('option');
             errOpt.disabled = true;
             errOpt.selected = true;
-            errOpt.textContent = `⚠️ Stops not loaded (missing ${routeKey} files)`;
+            errOpt.textContent = `⚠️ Stops not loaded (missing data for this route)`;
             originSelect.appendChild(errOpt.cloneNode(true));
             destSelect.appendChild(errOpt.cloneNode(true));
             originSelect.disabled = true;
@@ -420,18 +533,22 @@
                 </div>
                 <div class="form-row">
                     <div class="field">
+                        <label>🏢 BUS COMPANY</label>
+                        <select class="company-select" data-id="${segment.id}" id="company-${segment.id}"></select>
+                    </div>
+                    <div class="field">
                         <label>🚌 ROUTE</label>
-                        <select class="route-select" data-id="${segment.id}">
-                            ${Object.keys(ROUTES_DATA).map(rk => `<option value="${rk}" ${segment.routeKey === rk ? 'selected' : ''}>${ROUTES_DATA[rk].displayName}</option>`).join('')}
-                        </select>
+                        <select class="route-select" data-id="${segment.id}" id="route-${segment.id}" disabled></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label>📍 ORIGIN (boarding)</label>
+                        <select class="origin-select" data-id="${segment.id}" id="origin-${segment.id}" disabled></select>
                     </div>
                     <div class="field">
-                        <label>📍 ORIGIN</label>
-                        <select class="origin-select" data-id="${segment.id}" id="origin-${segment.id}"></select>
-                    </div>
-                    <div class="field">
-                        <label>🏁 DESTINATION</label>
-                        <select class="dest-select" data-id="${segment.id}" id="dest-${segment.id}"></select>
+                        <label>🏁 DESTINATION (alighting)</label>
+                        <select class="dest-select" data-id="${segment.id}" id="dest-${segment.id}" disabled></select>
                     </div>
                 </div>
                 <div class="segment-fare">
@@ -440,26 +557,69 @@
                 </div>
             `;
             segmentsContainer.appendChild(segDiv);
-            if (segment.routeKey) populateStopDropdowns(segment.id, segment.routeKey);
-            const routeSel = segDiv.querySelector('.route-select');
-            const originSel = segDiv.querySelector('.origin-select');
-            const destSel = segDiv.querySelector('.dest-select');
-            const removeBtn = segDiv.querySelector('.remove-seg');
+
+            // Populate company dropdown
+            populateCompanyDropdown(segment.id);
+            
+            // Populate route dropdown based on selected company
+            if (segment.companyId) {
+                populateRouteDropdown(segment.id);
+                if (segment.routeKey) {
+                    populateStopDropdowns(segment.id, segment.routeKey);
+                }
+            }
+
+            // Attach event listeners
+            const companySel = segDiv.querySelector(`.company-select`);
+            const routeSel = segDiv.querySelector(`.route-select`);
+            const originSel = segDiv.querySelector(`.origin-select`);
+            const destSel = segDiv.querySelector(`.dest-select`);
+            const removeBtn = segDiv.querySelector(`.remove-seg`);
+
+            companySel.addEventListener('change', (e) => {
+                segment.companyId = e.target.value;
+                segment.routeKey = null;
+                segment.originId = null;
+                segment.destId = null;
+                populateRouteDropdown(segment.id);
+                // Reset stop dropdowns
+                const originSelect = document.getElementById(`origin-${segment.id}`);
+                const destSelect = document.getElementById(`dest-${segment.id}`);
+                if (originSelect) originSelect.innerHTML = '<option disabled selected>— Select route first —</option>';
+                if (destSelect) destSelect.innerHTML = '<option disabled selected>— Select route first —</option>';
+                originSelect.disabled = true;
+                destSelect.disabled = true;
+                refreshSegmentUI(segment.id);
+            });
+
             routeSel.addEventListener('change', (e) => {
                 segment.routeKey = e.target.value;
                 segment.originId = null;
                 segment.destId = null;
-                populateStopDropdowns(segment.id, segment.routeKey);
+                if (segment.routeKey) {
+                    populateStopDropdowns(segment.id, segment.routeKey);
+                } else {
+                    // Reset stop dropdowns
+                    const originSelect = document.getElementById(`origin-${segment.id}`);
+                    const destSelect = document.getElementById(`dest-${segment.id}`);
+                    if (originSelect) originSelect.innerHTML = '<option disabled selected>— Select route first —</option>';
+                    if (destSelect) destSelect.innerHTML = '<option disabled selected>— Select route first —</option>';
+                    originSelect.disabled = true;
+                    destSelect.disabled = true;
+                }
                 refreshSegmentUI(segment.id);
             });
+
             originSel.addEventListener('change', (e) => {
                 segment.originId = e.target.value;
                 refreshSegmentUI(segment.id);
             });
+
             destSel.addEventListener('change', (e) => {
                 segment.destId = e.target.value;
                 refreshSegmentUI(segment.id);
             });
+
             removeBtn.addEventListener('click', () => {
                 segments = segments.filter(s => s.id !== segment.id);
                 renderSegments();
@@ -470,25 +630,29 @@
 
     function addSegment() {
         const newId = ++segmentCounter;
-        const firstRouteKey = Object.keys(ROUTES_DATA)[0];
-        if (!firstRouteKey) return;
-        segments.push({ id: newId, routeKey: firstRouteKey, originId: null, destId: null, fare: 0 });
+        segments.push({ 
+            id: newId, 
+            companyId: null,
+            routeKey: null, 
+            originId: null, 
+            destId: null, 
+            fare: 0 
+        });
         renderSegments();
         updateGrandTotal();
     }
 
-    // --------------------------------------------------------------
-    // Initialisation: load metadata → load all route data → start UI
-    // --------------------------------------------------------------
+    // Initialisation: load metadata → discover companies → load route data → start UI
     (async function init() {
         try {
             await loadRouteMetadata();
+            discoverCompanies();  // Auto-discover and sort companies from route_metadata.json
             await loadAllRouteData();
             addSegment();
             document.getElementById('addSegmentBtn').addEventListener('click', addSegment);
         } catch (err) {
             console.error("Fatal error during initialisation:", err);
-            segmentsContainer.innerHTML = `<div class="empty-message">⚠️ Failed to load route data. Check console and ensure all files exist (route_metadata.json, stop .txt files, zone & price .json files).</div>`;
+            segmentsContainer.innerHTML = `<div class="empty-message">⚠️ Failed to load route data. Check console and ensure route_metadata.json exists and all referenced files are present.</div>`;
         }
     })();
 </script>
