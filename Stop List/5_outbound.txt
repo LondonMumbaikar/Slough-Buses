@@ -22,7 +22,7 @@
 03700540|Mountbatten Close (NE-Bound)
 03700498|High Street East (Stop T)
 03700310|Wexham Road (Stop K)
-03700340|Queensmere Shopping List (Stop H)
+03700340|Queensmere Shopping Centre (Stop H)
 03700556|Wellington Street (Stop D)
 03700335|Wellington Street (Stop E)
 03700429|Salt Hill Care Centre (W-Bound)
