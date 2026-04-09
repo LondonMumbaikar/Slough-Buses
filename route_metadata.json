@@ -55,6 +55,5 @@
     "stopsFile": "Stop List/704_outbound.txt",
     "zonesFile": "Zone Mapping/704_outbound_zones.json",
     "pricesFile": "Price Matrix/704_outbound_prices.json"
-
   }
 }
