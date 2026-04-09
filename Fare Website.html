@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Multi‑Segment Fare Builder · Thames Valley Buses</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #eef2f5;
+            margin: 0;
+            padding: 2rem 1.5rem;
+        }
+
+        .app-container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #003d5b;
+            color: white;
+            padding: 1.6rem 2rem;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            margin: 0.4rem 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .segments-area {
+            padding: 2rem 2rem 1rem 2rem;
+        }
+
+        .segment-card {
+            background: #f9fbfd;
+            border-radius: 1.5rem;
+            border: 1px solid #e2edf2;
+            padding: 1.3rem 1.5rem;
+            margin-bottom: 1.8rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+
+        .segment-title {
+            font-weight: 700;
+            color: #1f5e7a;
+            background: #e9f0f5;
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .remove-seg {
+            background: none;
+            border: none;
+            color: #9a6e6e;
+            font-size: 1.3rem;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0 0.5rem;
+            border-radius: 2rem;
+            transition: 0.2s;
+        }
+
+        .remove-seg:hover {
+            color: #c7362b;
+            background: #fff0ee;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #2c647e;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.3px;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border-radius: 1rem;
+            border: 1.5px solid #e0e9f0;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 2px rgba(44,125,160,0.2);
+        }
+
+        .segment-fare {
+            background: #eef3fa;
+            border-radius: 1.2rem;
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+        }
+
+        .fare-label {
+            font-weight: 600;
+            color: #1f5e7a;
+        }
+
+        .fare-amount {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #0f2c39;
+        }
+
+        .total-section {
+            background: #eef2f8;
+            margin: 0.5rem 2rem 2rem 2rem;
+            border-radius: 1.8rem;
+            padding: 1rem 1.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-top: 2px solid #cbdde6;
+        }
+
+        .total-label {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #1a4b63;
+        }
+
+        .total-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #003d5b;
+        }
+
+        .add-btn {
+            background: #2c7da0;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.7rem 1.5rem;
+            border-radius: 3rem;
+            margin: 0 2rem 1.5rem 2rem;
+            width: calc(100% - 4rem);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .add-btn:hover {
+            background: #1f5e7a;
+            transform: scale(0.98);
+        }
+
+        .attribution {
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.7rem;
+            color: #6c8ea0;
+            border-top: 1px solid #e2edf2;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: #6c8ea0;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="main-card">
+        <div class="header">
+            <h1>🧾 Multi‑leg fare builder</h1>
+            <p>Add route segments · pick origin & destination · automatic total</p>
+        </div>
+
+        <div id="segmentsContainer" class="segments-area">
+            <!-- dynamic segments -->
+        </div>
+
+        <div class="total-section" id="totalSection">
+            <span class="total-label">💰 TOTAL (all segments)</span>
+            <span class="total-value" id="grandTotal">£0.00</span>
+        </div>
+
+        <button class="add-btn" id="addSegmentBtn">➕ Add another route segment</button>
+        <div class="attribution">
+            Adult single fares · Official Thames Valley Buses zone-to-zone matrix (inbound/outbound) · Valid from Jan 2026<br>
+            ⚠️ Stop lists are loaded from external .txt files (2_inbound.txt, 2_outbound.txt, 5_inbound.txt, 5_outbound.txt)
+        </div>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // COMPLETE FARE MATRICES extracted from the provided NeTEx XML files
+    // --------------------------------------------------------------
+
+    // ----- ROUTE 2 INBOUND (Windsor → Wexham Park) -----
+    const R2_INBOUND_PRICES = {
+        "fs@372@b|fs@477@a":3.00, "fs@372@b|fs@476@a":3.00, "fs@372@b|fs@475@a":3.00, "fs@372@b|fs@392@a":3.00,
+        "fs@372@b|fs@474@a":3.00, "fs@372@b|fs@473@a":3.00, "fs@372@b|fs@472@a":3.00, "fs@372@b|fs@372@a":3.00,
+        "fs@472@b|fs@477@a":3.00, "fs@472@b|fs@476@a":3.00, "fs@472@b|fs@475@a":3.00, "fs@472@b|fs@392@a":3.00,
+        "fs@472@b|fs@474@a":3.00, "fs@472@b|fs@473@a":2.70, "fs@472@b|fs@472@a":2.70,
+        "fs@473@b|fs@477@a":3.00, "fs@473@b|fs@476@a":3.00, "fs@473@b|fs@475@a":3.00, "fs@473@b|fs@392@a":3.00,
+        "fs@473@b|fs@474@a":3.00, "fs@473@b|fs@473@a":2.70,
+        "fs@474@b|fs@477@a":3.00, "fs@474@b|fs@476@a":3.00, "fs@474@b|fs@475@a":3.00, "fs@474@b|fs@392@a":3.00,
+        "fs@474@b|fs@474@a":2.70,
+        "fs@392@b|fs@477@a":3.00, "fs@392@b|fs@476@a":2.50, "fs@392@b|fs@475@a":2.50, "fs@392@b|fs@392@a":2.50,
+        "fs@475@b|fs@477@a":3.00, "fs@475@b|fs@476@a":2.50, "fs@475@b|fs@475@a":2.50,
+        "fs@476@b|fs@477@a":2.70, "fs@476@b|fs@476@a":2.50,
+        "fs@477@b|fs@477@a":2.70
+    };
+
+    // ----- ROUTE 2 OUTBOUND (Wexham Park → Windsor) -----
+    const R2_OUTBOUND_PRICES = {
+        "fs@477@b|fs@477@a":2.70, "fs@477@b|fs@476@a":2.70, "fs@477@b|fs@475@a":3.00, "fs@477@b|fs@392@a":3.00,
+        "fs@477@b|fs@474@a":3.00, "fs@477@b|fs@473@a":3.00, "fs@477@b|fs@472@a":3.00, "fs@477@b|fs@372@a":3.00,
+        "fs@476@b|fs@476@a":2.50, "fs@476@b|fs@475@a":2.50, "fs@476@b|fs@392@a":2.50, "fs@476@b|fs@474@a":3.00,
+        "fs@476@b|fs@473@a":3.00, "fs@476@b|fs@472@a":3.00, "fs@476@b|fs@372@a":3.00,
+        "fs@475@b|fs@475@a":2.50, "fs@475@b|fs@392@a":2.50, "fs@475@b|fs@474@a":3.00, "fs@475@b|fs@473@a":3.00,
+        "fs@475@b|fs@472@a":3.00, "fs@475@b|fs@372@a":3.00,
+        "fs@392@b|fs@392@a":2.50, "fs@392@b|fs@474@a":3.00, "fs@392@b|fs@473@a":3.00, "fs@392@b|fs@472@a":3.00,
+        "fs@392@b|fs@372@a":3.00,
+        "fs@474@b|fs@474@a":2.70, "fs@474@b|fs@473@a":3.00, "fs@474@b|fs@472@a":3.00, "fs@474@b|fs@372@a":3.00,
+        "fs@473@b|fs@473@a":2.70, "fs@473@b|fs@472@a":2.70, "fs@473@b|fs@372@a":3.00,
+        "fs@472@b|fs@472@a":2.70, "fs@472@b|fs@372@a":3.00,
+        "fs@372@b|fs@372@a":3.00
+    };
+
+    // ----- ROUTE 5 INBOUND (Cippenham → Heathrow) -----
+    const R5_INBOUND_PRICES = {
+        "fs@512@b|fs@522@a":3.00, "fs@512@b|fs@521@a":3.00, "fs@512@b|fs@520@a":3.00, "fs@512@b|fs@519@a":3.00,
+        "fs@512@b|fs@518@a":3.00, "fs@512@b|fs@517@a":3.00, "fs@512@b|fs@516@a":3.00, "fs@512@b|fs@515@a":3.00,
+        "fs@512@b|fs@514@a":3.00, "fs@512@b|fs@513@a":3.00, "fs@512@b|fs@512@a":3.00,
+        "fs@513@b|fs@522@a":3.00, "fs@513@b|fs@521@a":3.00, "fs@513@b|fs@520@a":3.00, "fs@513@b|fs@519@a":3.00,
+        "fs@513@b|fs@518@a":3.00, "fs@513@b|fs@517@a":3.00, "fs@513@b|fs@516@a":3.00, "fs@513@b|fs@515@a":3.00,
+        "fs@513@b|fs@514@a":3.00, "fs@513@b|fs@513@a":3.00,
+        "fs@514@b|fs@522@a":3.00, "fs@514@b|fs@521@a":3.00, "fs@514@b|fs@520@a":3.00, "fs@514@b|fs@519@a":3.00,
+        "fs@514@b|fs@518@a":3.00, "fs@514@b|fs@517@a":3.00, "fs@514@b|fs@516@a":3.00, "fs@514@b|fs@515@a":3.00,
+        "fs@514@b|fs@514@a":3.00,
+        "fs@516@b|fs@522@a":3.00, "fs@516@b|fs@521@a":3.00, "fs@516@b|fs@520@a":3.00, "fs@516@b|fs@519@a":3.00,
+        "fs@516@b|fs@518@a":3.00, "fs@516@b|fs@517@a":3.00, "fs@516@b|fs@516@a":2.50,
+        "fs@517@b|fs@522@a":3.00, "fs@517@b|fs@521@a":3.00, "fs@517@b|fs@520@a":3.00, "fs@517@b|fs@519@a":3.00,
+        "fs@517@b|fs@518@a":3.00, "fs@517@b|fs@517@a":3.00,
+        "fs@518@b|fs@522@a":3.00, "fs@518@b|fs@521@a":3.00, "fs@518@b|fs@520@a":3.00, "fs@518@b|fs@519@a":3.00,
+        "fs@518@b|fs@518@a":2.50,
+        "fs@519@b|fs@522@a":3.00, "fs@519@b|fs@521@a":3.00, "fs@519@b|fs@520@a":3.00, "fs@519@b|fs@519@a":3.00,
+        "fs@520@b|fs@522@a":3.00, "fs@520@b|fs@521@a":3.00, "fs@520@b|fs@520@a":3.00,
+        "fs@521@b|fs@522@a":1.50, "fs@521@b|fs@521@a":1.50,
+        "fs@522@b|fs@522@a":1.50
+    };
+
+    // ----- ROUTE 5 OUTBOUND (Heathrow → Cippenham) -----
+    const R5_OUTBOUND_PRICES = {
+        "fs@522@b|fs@522@a":1.50, "fs@522@b|fs@521@a":1.50, "fs@522@b|fs@520@a":3.00, "fs@522@b|fs@519@a":3.00,
+        "fs@522@b|fs@518@a":3.00, "fs@522@b|fs@517@a":3.00, "fs@522@b|fs@516@a":3.00, "fs@522@b|fs@515@a":3.00,
+        "fs@522@b|fs@514@a":3.00, "fs@522@b|fs@513@a":3.00, "fs@522@b|fs@512@a":3.00,
+        "fs@521@b|fs@521@a":1.50, "fs@521@b|fs@520@a":3.00, "fs@521@b|fs@519@a":3.00, "fs@521@b|fs@518@a":3.00,
+        "fs@521@b|fs@517@a":3.00, "fs@521@b|fs@516@a":3.00, "fs@521@b|fs@515@a":3.00, "fs@521@b|fs@514@a":3.00,
+        "fs@521@b|fs@513@a":3.00, "fs@521@b|fs@512@a":3.00,
+        "fs@520@b|fs@520@a":3.00, "fs@520@b|fs@519@a":3.00, "fs@520@b|fs@518@a":3.00, "fs@520@b|fs@517@a":3.00,
+        "fs@520@b|fs@516@a":3.00, "fs@520@b|fs@515@a":3.00, "fs@520@b|fs@514@a":3.00, "fs@520@b|fs@513@a":3.00,
+        "fs@520@b|fs@512@a":3.00,
+        "fs@519@b|fs@519@a":3.00, "fs@519@b|fs@518@a":3.00, "fs@519@b|fs@517@a":3.00, "fs@519@b|fs@516@a":3.00,
+        "fs@519@b|fs@515@a":3.00, "fs@519@b|fs@514@a":3.00, "fs@519@b|fs@513@a":3.00, "fs@519@b|fs@512@a":3.00,
+        "fs@518@b|fs@518@a":2.50, "fs@518@b|fs@517@a":3.00, "fs@518@b|fs@516@a":3.00, "fs@518@b|fs@515@a":3.00,
+        "fs@518@b|fs@514@a":3.00, "fs@518@b|fs@513@a":3.00, "fs@518@b|fs@512@a":3.00,
+        "fs@517@b|fs@517@a":3.00, "fs@517@b|fs@516@a":3.00, "fs@517@b|fs@515@a":3.00, "fs@517@b|fs@514@a":3.00,
+        "fs@517@b|fs@513@a":3.00, "fs@517@b|fs@512@a":3.00,
+        "fs@516@b|fs@516@a":2.50, "fs@516@b|fs@515@a":2.50, "fs@516@b|fs@514@a":3.00, "fs@516@b|fs@513@a":3.00,
+        "fs@516@b|fs@512@a":3.00,
+        "fs@514@b|fs@514@a":3.00, "fs@514@b|fs@513@a":3.00, "fs@514@b|fs@512@a":3.00,
+        "fs@513@b|fs@513@a":3.00, "fs@513@b|fs@512@a":3.00,
+        "fs@512@b|fs@512@a":3.00
+    };
+
+    // --------------------------------------------------------------
+    // ROUTE DEFINITIONS – stops are now loaded from external .txt files
+    // --------------------------------------------------------------
+    const ROUTES_DATA = {
+        "2_inbound": {
+            id: "2_inbound",
+            displayName: "🚍 Route 2: Windsor → Wexham Park Hospital",
+            lineDescription: "Windsor → Wexham Park Hospital",
+            stopsFile: "Stop List/2_inbound.txt",
+            stops: [],  // will be filled by loadAllRouteStops()
+            stopOriginZone: { "036006218218":"fs@372@b","036006001458":"fs@372@b","036006221222":"fs@372@b","036006300300":"fs@372@b","036006302302":"fs@372@b","036006001459":"fs@372@b","036006305305":"fs@372@b","036006256256":"fs@472@b","036006257262":"fs@472@b","036006258258":"fs@472@b","036006307307":"fs@472@b","036006309310":"fs@472@b","036006312312":"fs@472@b","036006314315":"fs@472@b","036000000063":"fs@472@b","036000000101":"fs@472@b","036006327328":"fs@472@b","036006325325":"fs@473@b","036006001249":"fs@473@b","036006208208":"fs@473@b","03700319":"fs@474@b","03700317":"fs@474@b","03700334":"fs@474@b","03700531":"fs@392@b","03700348":"fs@392@b","03700350":"fs@392@b","03700383":"fs@392@b","03700386":"fs@392@b","03700388":"fs@392@b","03700389":"fs@475@b","03700393":"fs@475@b","03700395":"fs@475@b","03700370":"fs@475@b","03700371":"fs@476@b","03700397":"fs@476@b","03700398":"fs@476@b","03700401":"fs@476@b","03700403":"fs@476@b","03700405":"fs@476@b","040000001450":"fs@476@b","03700049":"fs@477@b" },
+            stopDestZone: { "036006218218":"fs@372@a","036006001458":"fs@472@a","036006221222":"fs@472@a","036006300300":"fs@472@a","036006302302":"fs@472@a","036006001459":"fs@472@a","036006305305":"fs@472@a","036006256256":"fs@472@a","036006257262":"fs@473@a","036006258258":"fs@473@a","036006307307":"fs@473@a","036006309310":"fs@473@a","036006312312":"fs@473@a","036006314315":"fs@473@a","036000000063":"fs@473@a","036000000101":"fs@473@a","036006327328":"fs@473@a","036006325325":"fs@473@a","036006001249":"fs@473@a","036006208208":"fs@474@a","03700319":"fs@474@a","03700317":"fs@392@a","03700334":"fs@392@a","03700531":"fs@392@a","03700348":"fs@475@a","03700350":"fs@475@a","03700383":"fs@475@a","03700386":"fs@475@a","03700388":"fs@475@a","03700389":"fs@475@a","03700393":"fs@476@a","03700395":"fs@476@a","03700370":"fs@476@a","03700371":"fs@476@a","03700397":"fs@477@a","03700398":"fs@477@a","03700401":"fs@477@a","03700403":"fs@477@a","03700405":"fs@477@a","040000001450":"fs@477@a","03700049":"fs@477@a" },
+            prices: R2_INBOUND_PRICES
+        },
+        "2_outbound": {
+            id: "2_outbound",
+            displayName: "🚍 Route 2: Wexham Park Hospital → Windsor",
+            lineDescription: "Wexham Park Hospital → Windsor",
+            stopsFile: "Stop List/2_outbound.txt",
+            stops: [],
+            stopOriginZone: { "03700051":"fs@477@b","03700404":"fs@477@b","03700402":"fs@477@b","03700400":"fs@477@b","03700399":"fs@477@b","03700396":"fs@477@b","03700376":"fs@476@b","03700377":"fs@476@b","03700394":"fs@476@b","03700392":"fs@476@b","03700390":"fs@475@b","03700387":"fs@475@b","03700385":"fs@475@b","03700384":"fs@475@b","03700351":"fs@475@b","03700349":"fs@475@b","03700558":"fs@475@b","03700443":"fs@392@b","03700316":"fs@392@b","03700318":"fs@474@b","036006749749":"fs@474@b","036006207207":"fs@474@b","036006001449":"fs@474@b","036006325326":"fs@473@b","036006327327":"fs@473@b","036000000045":"fs@473@b","036000000062":"fs@473@b","036006316316":"fs@473@b","036006314314":"fs@473@b","036006312313":"fs@473@b","036006309309":"fs@473@b","036006258259":"fs@473@b","036006257257":"fs@473@b","036006306306":"fs@472@b","036006735735":"fs@472@b","036006304304":"fs@472@b","036006302303":"fs@472@b","036006301301":"fs@472@b","036006221221":"fs@472@b","036006223223":"fs@472@b","036006224225":"fs@472@b","036006226226":"fs@472@b","036006218218":"fs@372@b" },
+            stopDestZone: { "03700051":"fs@477@a","03700404":"fs@476@a","03700402":"fs@476@a","03700400":"fs@476@a","03700399":"fs@476@a","03700396":"fs@476@a","03700376":"fs@476@a","03700377":"fs@475@a","03700394":"fs@475@a","03700392":"fs@475@a","03700390":"fs@475@a","03700387":"fs@392@a","03700385":"fs@392@a","03700384":"fs@392@a","03700351":"fs@392@a","03700349":"fs@392@a","03700558":"fs@392@a","03700443":"fs@392@a","03700316":"fs@474@a","03700318":"fs@474@a","036006749749":"fs@473@a","036006207207":"fs@473@a","036006001449":"fs@473@a","036006325326":"fs@473@a","036006327327":"fs@472@a","036000000045":"fs@472@a","036000000062":"fs@472@a","036006316316":"fs@472@a","036006314314":"fs@472@a","036006312313":"fs@472@a","036006309309":"fs@472@a","036006258259":"fs@472@a","036006257257":"fs@472@a","036006306306":"fs@472@a","036006735735":"fs@372@a","036006304304":"fs@372@a","036006302303":"fs@372@a","036006301301":"fs@372@a","036006221221":"fs@372@a","036006223223":"fs@372@a","036006224225":"fs@372@a","036006226226":"fs@372@a","036006218218":"fs@372@a" },
+            prices: R2_OUTBOUND_PRICES
+        },
+        "5_inbound": {
+            id: "5_inbound",
+            displayName: "🚌 Route 5: Cippenham → Heathrow Terminal 5",
+            lineDescription: "Cippenham Green → Heathrow",
+            stopsFile: "Stop List/5_inbound.txt",
+            stops: [],
+            stopOriginZone: { "03700016":"fs@512@b","03700015":"fs@512@b","03700012":"fs@512@b","03700464":"fs@512@b","03700514":"fs@512@b","03700512":"fs@512@b","03700273":"fs@512@b","03700275":"fs@513@b","03700274":"fs@513@b","03700276":"fs@513@b","03700283":"fs@513@b","03700284":"fs@513@b","03700287":"fs@513@b","03700289":"fs@513@b","03700291":"fs@514@b","03700294":"fs@514@b","03700561":"fs@514@b","03700337":"fs@514@b","03700323":"fs@516@b","03700311":"fs@516@b","03700538":"fs@516@b","03700539":"fs@516@b","03700305":"fs@517@b","036006002182":"fs@517@b","036006756756":"fs@517@b","036006485486":"fs@517@b","036006002185":"fs@517@b","036006230231":"fs@518@b","036006232233":"fs@518@b","036006231231":"fs@518@b","036006740740":"fs@519@b","036006453453":"fs@519@b","036006455455":"fs@519@b","036006456456":"fs@519@b","036006002197":"fs@520@b","036006762762":"fs@520@b","03700564":"fs@520@b","03700302":"fs@520@b","03700165":"fs@521@b","03700167":"fs@521@b","490010009E":"fs@521@b","4900164309":"fs@522@b","490010197E":"fs@522@b","490010174E":"fs@522@b","4900801618":"fs@522@b" },
+            stopDestZone: { "03700016":"fs@512@a","03700015":"fs@513@a","03700012":"fs@513@a","03700464":"fs@513@a","03700514":"fs@513@a","03700512":"fs@513@a","03700273":"fs@513@a","03700275":"fs@513@a","03700274":"fs@514@a","03700276":"fs@514@a","03700283":"fs@514@a","03700284":"fs@514@a","03700287":"fs@514@a","03700289":"fs@514@a","03700291":"fs@514@a","03700294":"fs@515@a","03700561":"fs@515@a","03700337":"fs@516@a","03700323":"fs@517@a","03700311":"fs@517@a","03700538":"fs@517@a","03700539":"fs@517@a","03700305":"fs@518@a","036006002182":"fs@518@a","036006756756":"fs@518@a","036006485486":"fs@518@a","036006002185":"fs@518@a","036006230231":"fs@518@a","036006232233":"fs@519@a","036006231231":"fs@519@a","036006740740":"fs@519@a","036006453453":"fs@520@a","036006455455":"fs@520@a","036006456456":"fs@520@a","036006002197":"fs@520@a","036006762762":"fs@521@a","03700564":"fs@521@a","03700302":"fs@521@a","03700165":"fs@521@a","03700167":"fs@522@a","490010009E":"fs@522@a","4900164309":"fs@522@a","490010197E":"fs@522@a","490010174E":"fs@522@a","4900801618":"fs@522@a" },
+            prices: R5_INBOUND_PRICES
+        },
+        "5_outbound": {
+            id: "5_outbound",
+            displayName: "🚌 Route 5: Heathrow Terminal 5 → Cippenham",
+            lineDescription: "Heathrow → Cippenham",
+            stopsFile: "Stop List/5_outbound.txt",
+            stops: [],
+            stopOriginZone: { "4900164309":"fs@522@b","490010009W":"fs@522@b","03700168":"fs@522@b","03700166":"fs@521@b","03700299":"fs@521@b","03700301":"fs@521@b","03700565":"fs@521@b","03700303":"fs@521@b","036006001198":"fs@521@b","036006001197":"fs@520@b","036006456457":"fs@520@b","036006455456":"fs@520@b","036006453454":"fs@520@b","036006740741":"fs@519@b","036006231234":"fs@519@b","036006230230":"fs@518@b","036006001185":"fs@518@b","036006485485":"fs@518@b","036006001183":"fs@518@b","03700306":"fs@518@b","03700496":"fs@517@b","03700540":"fs@517@b","03700498":"fs@517@b","03700310":"fs@517@b","03700340":"fs@517@b","03700556":"fs@516@b","03700335":"fs@516@b","03700429":"fs@516@b","03700430":"fs@516@b","03700431":"fs@516@b","03700293":"fs@516@b","03700290":"fs@514@b","03700288":"fs@514@b","03700286":"fs@514@b","03700285":"fs@514@b","03700298":"fs@514@b","03700277":"fs@514@b","03700273":"fs@514@b","03700275":"fs@513@b","03700274":"fs@513@b","03700271":"fs@512@b","03700568":"fs@512@b","03700267":"fs@512@b","03700265":"fs@512@b","03700018":"fs@512@b","03700016":"fs@512@b" },
+            stopDestZone: { "4900164309":"fs@522@a","490010009W":"fs@521@a","03700168":"fs@521@a","03700166":"fs@521@a","03700299":"fs@520@a","03700301":"fs@520@a","03700565":"fs@520@a","03700303":"fs@520@a","036006001198":"fs@520@a","036006001197":"fs@520@a","036006456457":"fs@519@a","036006455456":"fs@519@a","036006453454":"fs@519@a","036006740741":"fs@519@a","036006231234":"fs@518@a","036006230230":"fs@518@a","036006001185":"fs@517@a","036006485485":"fs@517@a","036006001183":"fs@517@a","03700306":"fs@517@a","03700496":"fs@517@a","03700540":"fs@516@a","03700498":"fs@516@a","03700310":"fs@516@a","03700340":"fs@516@a","03700556":"fs@516@a","03700335":"fs@515@a","03700429":"fs@515@a","03700430":"fs@515@a","03700431":"fs@515@a","03700293":"fs@515@a","03700290":"fs@514@a","03700288":"fs@513@a","03700286":"fs@513@a","03700285":"fs@513@a","03700298":"fs@513@a","03700277":"fs@513@a","03700273":"fs@513@a","03700275":"fs@513@a","03700274":"fs@512@a","03700271":"fs@512@a","03700568":"fs@512@a","03700267":"fs@512@a","03700265":"fs@512@a","03700018":"fs@512@a","03700016":"fs@512@a" },
+            prices: R5_OUTBOUND_PRICES
+        }
+    };
+
+    // --------------------------------------------------------------
+    // Helper functions to load stops from text files
+    // --------------------------------------------------------------
+    async function loadStopsFromFile(filename) {
+        const response = await fetch(filename);
+        if (!response.ok) {
+            throw new Error(`Failed to load ${filename} (HTTP ${response.status})`);
+        }
+        const text = await response.text();
+        return text
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(line => line !== "");
+    }
+
+    async function loadAllRouteStops() {
+        for (const routeKey in ROUTES_DATA) {
+            const route = ROUTES_DATA[routeKey];
+            if (route.stopsFile) {
+                try {
+                    route.stops = await loadStopsFromFile(route.stopsFile);
+                    console.log(`✅ Loaded ${route.stops.length} stops for ${routeKey}`);
+                } catch (err) {
+                    console.error(`⚠️ Could not load stops for ${routeKey}:`, err);
+                    route.stops = []; // keep empty to avoid breaking UI
+                }
+            }
+        }
+    }
+
+    // --------------------------------------------------------------
+    // SEGMENT MANAGER (same logic, now using loaded stops)
+    // --------------------------------------------------------------
+    let segmentCounter = 0;
+    let segments = [];
+
+    const segmentsContainer = document.getElementById('segmentsContainer');
+    const grandTotalSpan = document.getElementById('grandTotal');
+
+    function updateGrandTotal() {
+        let total = 0;
+        segments.forEach(seg => { if (seg.fare && !isNaN(seg.fare)) total += seg.fare; });
+        grandTotalSpan.textContent = `£${total.toFixed(2)}`;
+    }
+
+    function computeSegmentFare(segment) {
+        if (!segment.routeKey || !segment.originId || !segment.destId) return null;
+        const route = ROUTES_DATA[segment.routeKey];
+        if (!route) return null;
+        const originZone = route.stopOriginZone[segment.originId];
+        const destZone = route.stopDestZone[segment.destId];
+        if (!originZone || !destZone) return null;
+        const priceKey = `${originZone}|${destZone}`;
+        const price = route.prices[priceKey];
+        return (price !== undefined) ? price : null;
+    }
+
+    function refreshSegmentUI(segmentId) {
+        const segElement = document.getElementById(`segment-${segmentId}`);
+        if (!segElement) return;
+        const segment = segments.find(s => s.id === segmentId);
+        if (!segment) return;
+        const fareSpan = segElement.querySelector('.segment-fare-amount');
+        const route = ROUTES_DATA[segment.routeKey];
+        if (segment.originId && segment.destId && route) {
+            const fare = computeSegmentFare(segment);
+            segment.fare = fare;
+            if (fare !== null && fare !== undefined) {
+                fareSpan.textContent = `£${fare.toFixed(2)}`;
+            } else {
+                fareSpan.textContent = '❌ no fare (invalid pair)';
+                segment.fare = 0;
+            }
+        } else {
+            fareSpan.textContent = '—';
+            segment.fare = 0;
+        }
+        updateGrandTotal();
+    }
+
+    function populateStopDropdowns(segmentId, routeKey) {
+        const segment = segments.find(s => s.id === segmentId);
+        if (!segment) return;
+        const route = ROUTES_DATA[routeKey];
+        if (!route || !route.stops || route.stops.length === 0) {
+            console.warn(`No stops loaded for route ${routeKey}`);
+            return;
+        }
+        const originSelect = document.getElementById(`origin-${segmentId}`);
+        const destSelect = document.getElementById(`dest-${segmentId}`);
+        if (!originSelect || !destSelect) return;
+        const oldOrigin = segment.originId;
+        const oldDest = segment.destId;
+        originSelect.innerHTML = '<option value="" disabled selected>— Origin stop —</option>';
+        destSelect.innerHTML = '<option value="" disabled selected>— Destination stop —</option>';
+        route.stops.forEach(stopEntry => {
+            const [id, name] = stopEntry.split('|');
+            if (!id || !name) return;
+            const optOrig = document.createElement('option'); optOrig.value = id; optOrig.textContent = name;
+            const optDest = document.createElement('option'); optDest.value = id; optDest.textContent = name;
+            originSelect.appendChild(optOrig);
+            destSelect.appendChild(optDest);
+        });
+        if (oldOrigin && route.stopOriginZone[oldOrigin]) {
+            originSelect.value = oldOrigin;
+            segment.originId = oldOrigin;
+        } else { segment.originId = null; originSelect.value = ""; }
+        if (oldDest && route.stopDestZone[oldDest]) {
+            destSelect.value = oldDest;
+            segment.destId = oldDest;
+        } else { segment.destId = null; destSelect.value = ""; }
+        refreshSegmentUI(segmentId);
+    }
+
+    function renderSegments() {
+        if (segments.length === 0) {
+            segmentsContainer.innerHTML = `<div class="empty-message">✨ No segments yet. Click "Add another route segment" to start building your journey.</div>`;
+            return;
+        }
+        segmentsContainer.innerHTML = '';
+        segments.forEach(segment => {
+            const segDiv = document.createElement('div');
+            segDiv.className = 'segment-card';
+            segDiv.id = `segment-${segment.id}`;
+            segDiv.innerHTML = `
+                <div class="segment-header">
+                    <span class="segment-title">Segment ${segment.id}</span>
+                    <button class="remove-seg" data-id="${segment.id}" title="Remove segment">✕</button>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label>🚌 ROUTE</label>
+                        <select class="route-select" data-id="${segment.id}">
+                            ${Object.keys(ROUTES_DATA).map(rk => `<option value="${rk}" ${segment.routeKey === rk ? 'selected' : ''}>${ROUTES_DATA[rk].displayName}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>📍 ORIGIN (boarding)</label>
+                        <select class="origin-select" data-id="${segment.id}" id="origin-${segment.id}"></select>
+                    </div>
+                    <div class="field">
+                        <label>🏁 DESTINATION (alighting)</label>
+                        <select class="dest-select" data-id="${segment.id}" id="dest-${segment.id}"></select>
+                    </div>
+                </div>
+                <div class="segment-fare">
+                    <span class="fare-label">🎫 Segment fare</span>
+                    <span class="fare-amount segment-fare-amount">—</span>
+                </div>
+            `;
+            segmentsContainer.appendChild(segDiv);
+            if (segment.routeKey) populateStopDropdowns(segment.id, segment.routeKey);
+            const routeSel = segDiv.querySelector(`.route-select`);
+            const originSel = segDiv.querySelector(`.origin-select`);
+            const destSel = segDiv.querySelector(`.dest-select`);
+            const removeBtn = segDiv.querySelector(`.remove-seg`);
+            routeSel.addEventListener('change', (e) => {
+                segment.routeKey = e.target.value;
+                segment.originId = null; segment.destId = null;
+                populateStopDropdowns(segment.id, segment.routeKey);
+                refreshSegmentUI(segment.id);
+            });
+            originSel.addEventListener('change', (e) => {
+                segment.originId = e.target.value;
+                refreshSegmentUI(segment.id);
+            });
+            destSel.addEventListener('change', (e) => {
+                segment.destId = e.target.value;
+                refreshSegmentUI(segment.id);
+            });
+            removeBtn.addEventListener('click', () => {
+                segments = segments.filter(s => s.id !== segment.id);
+                renderSegments();
+                updateGrandTotal();
+            });
+        });
+    }
+
+    function addSegment() {
+        const newId = ++segmentCounter;
+        const firstRouteKey = Object.keys(ROUTES_DATA)[0];
+        segments.push({ id: newId, routeKey: firstRouteKey, originId: null, destId: null, fare: 0 });
+        renderSegments();
+        updateGrandTotal();
+    }
+
+    // --------------------------------------------------------------
+    // INITIALISATION – load stops first, then start the UI
+    // --------------------------------------------------------------
+    (async function init() {
+        try {
+            await loadAllRouteStops();
+            addSegment();      // creates first segment
+            renderSegments();  // renders it (already called inside addSegment, but safe)
+        } catch (err) {
+            console.error("Fatal error during initialisation:", err);
+            segmentsContainer.innerHTML = `<div class="empty-message">⚠️ Failed to load route data. Check console for details.</div>`;
+        }
+    })();
+
+    document.getElementById('addSegmentBtn').addEventListener('click', addSegment);
+</script>
+</body>
+</html>
