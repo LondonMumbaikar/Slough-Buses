@@ -3,28 +3,28 @@
     "displayName": "🚍 Route 2: Windsor → Wexham Park Hospital",
     "lineDescription": "Windsor → Wexham Park Hospital",
     "stopsFile": "Stop Names/2_inbound.txt",
-    "zonesFile": "2_inbound_zones.json",
-    "pricesFile": "2_inbound_prices.json"
+    "zonesFile": "Zone Mapping/2_inbound_zones.json",
+    "pricesFile": "Price Matrix/2_inbound_prices.json"
   },
   "2_outbound": {
     "displayName": "🚍 Route 2: Wexham Park Hospital → Windsor",
     "lineDescription": "Wexham Park Hospital → Windsor",
     "stopsFile": "Stop Names/2_outbound.txt",
-    "zonesFile": "2_outbound_zones.json",
-    "pricesFile": "2_outbound_prices.json"
+    "zonesFile": "Zone Mapping/2_outbound_zones.json",
+    "pricesFile": "Price Matrix/2_outbound_prices.json"
   },
   "5_inbound": {
     "displayName": "🚌 Route 5: Cippenham → Heathrow Terminal 5",
     "lineDescription": "Cippenham Green → Heathrow",
     "stopsFile": "Stop Names/5_inbound.txt",
-    "zonesFile": "5_inbound_zones.json",
-    "pricesFile": "5_inbound_prices.json"
+    "zonesFile": "Zone Mapping/5_inbound_zones.json",
+    "pricesFile": "Price Matrix/5_inbound_prices.json"
   },
   "5_outbound": {
     "displayName": "🚌 Route 5: Heathrow Terminal 5 → Cippenham",
     "lineDescription": "Heathrow → Cippenham",
     "stopsFile": "Stop Names/5_outbound.txt",
-    "zonesFile": "5_outbound_zones.json",
-    "pricesFile": "5_outbound_prices.json"
+    "zonesFile": "Zone Mapping/5_outbound_zones.json",
+    "pricesFile": "Price Matrix/5_outbound_prices.json"
   }
 }
