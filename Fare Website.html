@@ -5,36 +5,196 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Multi‑Segment Fare Builder · Thames Valley Buses</title>
     <style>
-        /* (same CSS as before – omitted for brevity) */
-        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Inter', 'Roboto', sans-serif; }
-        body { background: #eef2f5; margin: 0; padding: 2rem 1.5rem; }
-        .app-container { max-width: 950px; margin: 0 auto; }
-        .main-card { background: white; border-radius: 2rem; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15); overflow: hidden; }
-        .header { background: #003d5b; color: white; padding: 1.6rem 2rem; }
-        .header h1 { margin: 0; font-size: 1.7rem; font-weight: 600; }
-        .header p { margin: 0.4rem 0 0; opacity: 0.8; font-size: 0.9rem; }
-        .segments-area { padding: 2rem 2rem 1rem 2rem; }
-        .segment-card { background: #f9fbfd; border-radius: 1.5rem; border: 1px solid #e2edf2; padding: 1.3rem 1.5rem; margin-bottom: 1.8rem; }
-        .segment-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 1rem; gap: 0.5rem; }
-        .segment-title { font-weight: 700; color: #1f5e7a; background: #e9f0f5; padding: 0.2rem 1rem; border-radius: 2rem; font-size: 0.85rem; }
-        .remove-seg { background: none; border: none; color: #9a6e6e; font-size: 1.3rem; cursor: pointer; font-weight: 600; padding: 0 0.5rem; border-radius: 2rem; }
-        .remove-seg:hover { color: #c7362b; background: #fff0ee; }
-        .form-row { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-bottom: 1rem; }
-        .field { flex: 1; min-width: 160px; }
-        .field label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #2c647e; margin-bottom: 0.3rem; }
-        select { width: 100%; padding: 0.7rem 0.9rem; border-radius: 1rem; border: 1.5px solid #e0e9f0; background: white; font-size: 0.9rem; cursor: pointer; }
-        select:focus { border-color: #2c7da0; box-shadow: 0 0 0 2px rgba(44,125,160,0.2); }
-        .segment-fare { background: #eef3fa; border-radius: 1.2rem; padding: 0.5rem 1rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
-        .fare-label { font-weight: 600; color: #1f5e7a; }
-        .fare-amount { font-weight: 800; font-size: 1.3rem; color: #0f2c39; }
-        .total-section { background: #eef2f8; margin: 0.5rem 2rem 2rem 2rem; border-radius: 1.8rem; padding: 1rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-top: 2px solid #cbdde6; }
-        .total-label { font-weight: 700; font-size: 1.2rem; color: #1a4b63; }
-        .total-value { font-size: 2rem; font-weight: 800; color: #003d5b; }
-        .add-btn { background: #2c7da0; border: none; color: white; font-weight: 600; padding: 0.7rem 1.5rem; border-radius: 3rem; margin: 0 2rem 1.5rem 2rem; width: calc(100% - 4rem); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .add-btn:hover { background: #1f5e7a; transform: scale(0.98); }
-        .attribution { text-align: center; padding: 1.2rem; font-size: 0.7rem; color: #6c8ea0; border-top: 1px solid #e2edf2; }
-        .error-message { background: #fee2e2; color: #b91c1c; padding: 0.6rem 1rem; border-radius: 1rem; font-size: 0.8rem; margin-top: 0.5rem; }
-        .empty-message { text-align: center; padding: 2rem; color: #6c8ea0; }
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+        }
+        body {
+            background: #eef2f5;
+            margin: 0;
+            padding: 2rem 1.5rem;
+        }
+        .app-container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+        .main-card {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: #003d5b;
+            color: white;
+            padding: 1.6rem 2rem;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 0.4rem 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        .segments-area {
+            padding: 2rem 2rem 1rem 2rem;
+        }
+        .segment-card {
+            background: #f9fbfd;
+            border-radius: 1.5rem;
+            border: 1px solid #e2edf2;
+            padding: 1.3rem 1.5rem;
+            margin-bottom: 1.8rem;
+        }
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+        .segment-title {
+            font-weight: 700;
+            color: #1f5e7a;
+            background: #e9f0f5;
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+        }
+        .remove-seg {
+            background: none;
+            border: none;
+            color: #9a6e6e;
+            font-size: 1.3rem;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0 0.5rem;
+            border-radius: 2rem;
+        }
+        .remove-seg:hover {
+            color: #c7362b;
+            background: #fff0ee;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .field {
+            flex: 1;
+            min-width: 160px;
+        }
+        .field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #2c647e;
+            margin-bottom: 0.3rem;
+        }
+        select {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border-radius: 1rem;
+            border: 1.5px solid #e0e9f0;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        select:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 2px rgba(44,125,160,0.2);
+        }
+        select:disabled {
+            background: #f0f4f8;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .segment-fare {
+            background: #eef3fa;
+            border-radius: 1.2rem;
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        .fare-label {
+            font-weight: 600;
+            color: #1f5e7a;
+        }
+        .fare-amount {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #0f2c39;
+        }
+        .total-section {
+            background: #eef2f8;
+            margin: 0.5rem 2rem 2rem 2rem;
+            border-radius: 1.8rem;
+            padding: 1rem 1.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-top: 2px solid #cbdde6;
+        }
+        .total-label {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #1a4b63;
+        }
+        .total-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #003d5b;
+        }
+        .add-btn {
+            background: #2c7da0;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.7rem 1.5rem;
+            border-radius: 3rem;
+            margin: 0 2rem 1.5rem 2rem;
+            width: calc(100% - 4rem);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .add-btn:hover {
+            background: #1f5e7a;
+            transform: scale(0.98);
+        }
+        .attribution {
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.7rem;
+            color: #6c8ea0;
+            border-top: 1px solid #e2edf2;
+        }
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: #6c8ea0;
+        }
     </style>
 </head>
 <body>
@@ -51,32 +211,27 @@
         </div>
         <button class="add-btn" id="addSegmentBtn">➕ Add another route segment</button>
         <div class="attribution">
-            Data loaded from external files: stops (.txt), zone mappings and prices (.json).
+            Data loaded from external files: route_metadata.json, stop lists (.txt), zone mappings and prices (.json).
         </div>
     </div>
 </div>
 
 <script>
     // --------------------------------------------------------------
-    // Route metadata (lightweight, no large data)
+    // Global data structures
     // --------------------------------------------------------------
-    let ROUTE_METADATA = {};
+    let ROUTE_METADATA = {};      // loaded from route_metadata.json
+    const ROUTES_DATA = {};       // fully constructed route objects
 
-    async function loadMetadata() {
-        const response = await fetch("route_metadata.json");
-        if (!response.ok) throw new Error("Failed to load route_metadata.json");
-        ROUTE_METADATA = await response.json();
-    }
+    // Segment management
+    let segmentCounter = 0;
+    let segments = [];
 
-    // Then in init():
-    await loadMetadata();
-    await loadAllRouteData();  // this function now uses ROUTE_METADATA
-
-    // Will hold fully loaded route objects
-    const ROUTES_DATA = {};
+    const segmentsContainer = document.getElementById('segmentsContainer');
+    const grandTotalSpan = document.getElementById('grandTotal');
 
     // --------------------------------------------------------------
-    // Loading functions
+    // Helper: load text file (stops)
     // --------------------------------------------------------------
     async function loadStopsFromFile(filename) {
         const response = await fetch(filename);
@@ -85,12 +240,27 @@
         return text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
     }
 
+    // --------------------------------------------------------------
+    // Helper: load JSON file
+    // --------------------------------------------------------------
     async function loadJSON(filename) {
         const response = await fetch(filename);
         if (!response.ok) throw new Error(`HTTP ${response.status} loading ${filename}`);
         return response.json();
     }
 
+    // --------------------------------------------------------------
+    // Load route metadata from external JSON
+    // --------------------------------------------------------------
+    async function loadRouteMetadata() {
+        const response = await fetch("route_metadata.json");
+        if (!response.ok) throw new Error("Failed to load route_metadata.json");
+        ROUTE_METADATA = await response.json();
+    }
+
+    // --------------------------------------------------------------
+    // For each route, load stops, zones, prices and build ROUTES_DATA
+    // --------------------------------------------------------------
     async function loadAllRouteData() {
         const promises = [];
         for (const [routeId, meta] of Object.entries(ROUTE_METADATA)) {
@@ -131,19 +301,8 @@
     }
 
     // --------------------------------------------------------------
-    // Segment Manager (same logic, uses ROUTES_DATA)
+    // Segment fare calculation
     // --------------------------------------------------------------
-    let segmentCounter = 0;
-    let segments = [];
-    const segmentsContainer = document.getElementById('segmentsContainer');
-    const grandTotalSpan = document.getElementById('grandTotal');
-
-    function updateGrandTotal() {
-        let total = 0;
-        segments.forEach(seg => { if (seg.fare && !isNaN(seg.fare)) total += seg.fare; });
-        grandTotalSpan.textContent = `£${total.toFixed(2)}`;
-    }
-
     function computeSegmentFare(segment) {
         if (!segment.routeKey || !segment.originId || !segment.destId) return null;
         const route = ROUTES_DATA[segment.routeKey];
@@ -154,6 +313,12 @@
         const priceKey = `${originZone}|${destZone}`;
         const price = route.prices[priceKey];
         return (price !== undefined) ? price : null;
+    }
+
+    function updateGrandTotal() {
+        let total = 0;
+        segments.forEach(seg => { if (seg.fare && !isNaN(seg.fare)) total += seg.fare; });
+        grandTotalSpan.textContent = `£${total.toFixed(2)}`;
     }
 
     function refreshSegmentUI(segmentId) {
@@ -313,12 +478,18 @@
     }
 
     // --------------------------------------------------------------
-    // Initialisation
+    // Initialisation: load metadata → load all route data → start UI
     // --------------------------------------------------------------
     (async function init() {
-        await loadAllRouteData();
-        addSegment();
-        document.getElementById('addSegmentBtn').addEventListener('click', addSegment);
+        try {
+            await loadRouteMetadata();
+            await loadAllRouteData();
+            addSegment();
+            document.getElementById('addSegmentBtn').addEventListener('click', addSegment);
+        } catch (err) {
+            console.error("Fatal error during initialisation:", err);
+            segmentsContainer.innerHTML = `<div class="empty-message">⚠️ Failed to load route data. Check console and ensure all files exist (route_metadata.json, stop .txt files, zone & price .json files).</div>`;
+        }
     })();
 </script>
 </body>
