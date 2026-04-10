@@ -110,5 +110,21 @@
       "stopsFile": "Stop List/Redline Buses/WP1_outbound.txt",
       "zonesFile": "Zone Mapping/Redline Buses/WP1_outbound_zones.json",
       "pricesFile": "Price Matrix/Redline Buses/WP1_outbound_prices.json"
+  },
+    "583_inbound": {
+      "company": "Carousel Buses",
+      "displayName": "🚌 Route 583: Uxbridge → Hedgerley",
+      "lineDescription": "Uxbridge → Hedgerley",
+      "stopsFile": "Stop List/Carousel Buses/583_inbound.txt",
+      "zonesFile": "Zone Mapping/Carousel Buses/583_inbound_zones.json",
+      "pricesFile": "Price Matrix/Carousel Buses/583_inbound_prices.json"
+  },
+    "583_outbound": {
+      "company": "Carousel Buses",
+      "displayName": "🚌 Route 583: Hedgerley → Uxbridge",
+      "lineDescription": "Hedgerley → Uxbridge",
+      "stopsFile": "Stop List/Carousel Buses/583_outbound.txt",
+      "zonesFile": "Zone Mapping/Carousel Buses/583_outbound_zones.json",
+      "pricesFile": "Price Matrix/Carousel Buses/583_outbound_prices.json"
   }
 }
