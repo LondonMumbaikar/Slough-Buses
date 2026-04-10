@@ -99,16 +99,16 @@
       "company": "Redline Buses",
       "displayName": "🚌 Route WP1: Wexham Park Hospital → Slough",
       "lineDescription": "Wexham Park Hospital → Slough",
-      "stopsFile": "Stop List/Red Lines Buses/WP1_inbound.txt",
-      "zonesFile": "Zone Mapping/Red Line Buses/WP1_inbound_zones.json",
-      "pricesFile": "Price Matrix/Red Line Buses/WP1_inbound_prices.json"
+      "stopsFile": "Stop List/Redline Buses/WP1_inbound.txt",
+      "zonesFile": "Zone Mapping/Redline Buses/WP1_inbound_zones.json",
+      "pricesFile": "Price Matrix/Redline Buses/WP1_inbound_prices.json"
   },
     "WP1_outbound": {
       "company": "Redline Buses",
       "displayName": "🚌 Route WP1: Slough → Wexham Park Hospital",
       "lineDescription": "Slough → Wexham Park Hospital",
-      "stopsFile": "Stop List/Red Lines Buses/WP1_outbound.txt",
-      "zonesFile": "Zone Mapping/Red Line Buses/WP1_outbound_zones.json",
-      "pricesFile": "Price Matrix/Red Line Buses/WP1_outbound_prices.json"
+      "stopsFile": "Stop List/Redline Buses/WP1_outbound.txt",
+      "zonesFile": "Zone Mapping/Redline Buses/WP1_outbound_zones.json",
+      "pricesFile": "Price Matrix/Redline Buses/WP1_outbound_prices.json"
   }
 }
