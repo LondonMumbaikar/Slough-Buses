@@ -140,7 +140,7 @@
       "displayName": "🚌 Route 458: Slough → Uxbridge",
       "lineDescription": "Slough → Uxbridge",
       "stopsFile": "Stop List/Carousel Buses/458_outbound.txt",
-      "zonesFile": "Zone Mapping/Carousel Buses/458_inbound_zones.json",
+      "zonesFile": "Zone Mapping/Carousel Buses/458_outbound_zones.json",
       "pricesFile": "Price Matrix/Carousel Buses/458_outbound_prices.json"
   }
 }
